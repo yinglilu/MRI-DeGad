@@ -1,2 +1,2 @@
-# MRI de-Gad
-Convolutional Neural Network for the Extraction of Gadolinium Contrast from T1-weighted MRI
+# MRI-DeGad
+Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weighted MRI to Non-Gadolinium T1w Scans using 3D U-Net
