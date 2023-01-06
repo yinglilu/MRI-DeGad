@@ -4,7 +4,7 @@
 input_gad_dir='/home/ROBARTS/fogunsanya/graham/scratch/degad/derivatives/resampled/gad'
 input_nongad_dir='/home/ROBARTS/fogunsanya/graham/scratch/degad/derivatives/resampled/nongad'
 output_dir='/home/ROBARTS/fogunsanya/graham/scratch/degad/derivatives/greedy'
-sub_list=`cat /home/ROBARTS/fogunsanya/graham/scratch/degad/scripts/0-subject_list.txt`
+sub_list=`cat /home/ROBARTS/fogunsanya/graham/scratch/degad/scripts/updated/0-subject_list.txt`
 
 for sub in ${sub_list}; do
         mkdir ${output_dir}/${sub}
