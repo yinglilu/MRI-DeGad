@@ -4,7 +4,7 @@ Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weight
 
 ## Pipeline
 
-Path to degad non-gad and gad bids directory on Graham: /project/6050199/akhanf/cfmm-bids/data/Lau/degad/bids
+Path to degad non-gad and gad bids directory on Graham: /project/6050199/akhanf/cfmm-bids/data/Lau/degad/bids  
 **Preprocessing code still has my scratch directories, will update to refer to project directory
 
 **0-Subject_list.txt**  
