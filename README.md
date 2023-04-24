@@ -5,7 +5,7 @@ Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weight
 ## Pipeline
 
 Path to degad non-gad and gad bids directory on Graham:/home/fogunsan/projects/ctb-akhanf/cfmm-bids/Lau/degad/bids
- **Preprocessing code still has my scratch directories, will update to project directoru
+ **Preprocessing code still has my scratch directories, will update to refer to project directory
 
 **0-Subject_list.txt**  
   What it does: Holds all 55 subjects that underwent DBS or SEEG at LHSC
