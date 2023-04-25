@@ -4,8 +4,8 @@ Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weight
 
 ## Pipeline
 
-Path to degad non-gad and gad bids directory on Graham:/home/fogunsan/projects/ctb-akhanf/cfmm-bids/Lau/degad/bids
- **Preprocessing code still has my scratch directories, will update to refer to project directory
+Path to degad non-gad and gad bids directory on Graham: /project/6050199/akhanf/cfmm-bids/data/Lau/degad/bids  
+**Preprocessing code still has my scratch directories, will update to refer to project directory
 
 **0-Subject_list.txt**  
   What it does: Holds all 55 subjects that underwent DBS or SEEG at LHSC
@@ -62,9 +62,17 @@ Input directories: /project/6050199/akhanf/cfmm-bids/data/Lau/degad/derivatives/
 
 Output directory: /project/6050199/akhanf/cfmm-bids/data/Lau/degad/derivatives/UNET_outputs/
   
+Command to run:  
+1. convert to python script: jupyter nbconvert testnotebook.ipynb --to python  
+2. kbatch gpu -j Long --venv venv_train_degad python 6a-train_degad_CNN.py  
+
 **6b-train_degad_GAN.ipynb**  
 What it does: File to train degad model using a generative adversarial network (GAN) implementation  
 
 Input directory: /project/6050199/akhanf/cfmm-bids/data/Lau/degad/derivatives/passing_dataset/ and /project/6050199/akhanf/cfmm-bids/data/Lau/degad/derivatives/normalized_fcm/  
 
 Output directory:/project/6050199/akhanf/cfmm-bids/data/Lau/degad/derivatives/GAN_outputs/
+  
+Command to run:  
+1. convert to python script: jupyter nbconvert testnotebook.ipynb --to python  
+2. kbatch gpu -j Long --venv venv_train_degad python 6b-train_degad_GAN.py
