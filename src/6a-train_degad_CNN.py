@@ -60,7 +60,7 @@ num_train_files = len(train_files)
 num_validate_files = len(validate_files)
 num_patches =1200 #patches per image
 batch_size = 5
-date = "May23" # set to current day to not overwrite previous models
+date = "May25" # set to current day to not overwrite previous models
 training_steps = int(num_train_files * num_patches / batch_size) # number of training steps per epoch
 validation_steps = int(num_validate_files * num_patches / batch_size) # number of validation steps per epoch
 load_images= Compose(
@@ -118,11 +118,11 @@ learning_rate = 2e-4
 betas = (0.5, 0.999)
 cnn_opt = torch.optim.Adam(CNN_model.parameters(), lr = learning_rate, betas=betas)
 
-patience = 28# epochs it will take for training to terminate if no improvement
+patience = 100# epochs it will take for training to terminate if no improvement
 early_stopping = EarlyStopping(patience=patience, verbose=True, path = f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/checkpoint.pt')
 start = time.time() # initializing variable to calculate training time
 
-max_epochs = 1000 # max total iterations over entire training set
+max_epochs = 4000 # max total iterations over entire training set
 #root_mean_squared = MeanSquaredError(squared = False).to(device) #rmse metric calculated at the end of each epoch for training and val
 mean_abs_error = torch.nn.L1Loss().to(device)
 
