@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
-shutil.copy('/home/fogunsan/scratch/degad/repo/MRI-DeGad/src/6a-train_degad_CNN.py', f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/')
-# copy current version of training script to folder date
-
-
-# In[1]:
+# In[2]:
 
 
 import monai
+import shutil
 from monai.transforms import (
     Compose,
     LoadImaged,
@@ -24,6 +18,7 @@ from monai.transforms import (
     RandRotated,
     LoadImage,
     EnsureChannelFirstd,
+    Orientationd,
     EnsureChannelFirst,
     ScaleIntensityd,
     ScaleIntensity,
@@ -35,7 +30,7 @@ from torchmetrics import MeanSquaredError
 import time
 from monai.networks.nets import UNet
 from monai.inferers import sliding_window_inference
-from monai.data import CacheDataset, Dataset ,nifti_saver, PatchDataset, DataLoader, PersistentDataset, SmartCacheDataset, ThreadDataLoader
+from monai.data import CacheDataset, Dataset ,nifti_saver, PatchDataset, PersistentDataset, SmartCacheDataset, ThreadDataLoader
 import torch
 import matplotlib.pyplot as plt
 import tempfile
@@ -52,10 +47,20 @@ from pytorchtools import EarlyStopping
 import torchvision.transforms as transforms
 import random
 
+from torch.utils.data import DataLoader
+
 from torchmetrics import StructuralSimilarityIndexMeasure as SSIM
 
 
-# In[2]:
+# In[4]:
+
+
+date="June7" #  2e-5 learning rate, batch size 60, batch norm, mae loss func, 16 patch size
+shutil.copy('/home/fogunsan/scratch/degad/repo/MRI-DeGad/src/6a-train_degad_CNN.py', f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/')
+# copy current version of training script to folder date
+
+
+# In[3]:
 
 
 gad_t1= sorted(glob('/localscratch/tmp/passing_dataset/*/*_acq-gad_resampled_T1w.nii.gz'))# gad images who's corresponding nongad images underwent a rigid transform
@@ -65,51 +70,49 @@ print(len(image_dict)) #0:30 & 30:36
 train_files, validate_files, test_files = (image_dict[0:30] + image_dict[36:41:2]),(image_dict[30:36] + image_dict[37:42:2]), image_dict[42:47] #creates a list of dictionaries for each set (training, val, testing), with keys of gad and nongad in each index 
 
 
-# In[3]:
+# In[5]:
 
 
 ## now caching before and after patching
 num_train_files = len(train_files)
 num_validate_files = len(validate_files)
-num_patches =1200#patches per image
+num_patches =2000#patches per image if changing to 16,16,16 need 1200*8 patches to keep same amount of data but would increase loading time
 batch_size = 60
-date = "June3" # set to current day to not overwrite previous models or test if just testing
+date = "June7" # set to current day to not overwrite previous models or test if just testing
 training_steps = int(num_train_files * num_patches / batch_size) # number of training steps per epoch
 validation_steps = int(num_validate_files * num_patches / batch_size) # number of validation steps per epoch
-load_images= Compose(
-    [
-        LoadImaged(keys=["image", "label"]),
-        EnsureChannelFirstd(keys=["image", "label"]),
-        ScaleIntensityd(keys = ["image"], minv=0.0, maxv=1.0)])# applying min max normalization only on gad images
-    
-train_imgs_cache = CacheDataset(data=train_files, transform=load_images, cache_rate=1.0, num_workers = 1) # dataset with cache mechanism that can load data and cache deterministic transforms’ result during training.
-validate_imgs_cache = CacheDataset(data=validate_files, transform=load_images, cache_rate=1.0,num_workers =1)
 
-patching_func= RandCropByPosNegLabeld(# gonna use this function to create patches
+patching_func= Compose(
+    [
+        LoadImaged(keys=["image", "label"], ensure_channel_first=True),
+        Orientationd(keys=("image", "label"), axcodes="SPL"),
+        ScaleIntensityd(keys = ["image"], minv=0.0, maxv=1.0),
+        RandCropByPosNegLabeld(# gonna use this function to create patches
             keys = ["image", "label"],
             label_key = "image",
-            spatial_size=(32,32,32),
+            spatial_size=(16,16,16),
             pos = 1,
             neg = 0.01, # 1
             num_samples= num_patches# CHANGE BACK TO 5000
         )
+    ])
 patch_transforms = Compose([Rand3DElasticd(keys =["image", "label"], sigma_range = (0.5,1), magnitude_range = (0.1, 0.3), prob=0.2, shear_range=(0.1, -0.05, 0.0, 0.0, 0.0, 0.0), scale_range=0.5, padding_mode= "zeros"),
           RandFlipd(keys =["image", "label"], prob = 0.4, spatial_axis=1)])
     #RandRotated(keys =["image", "label"], range_x = 0.8, range_y = 0.8, range_z = 0.8, prob = 0.4), 
     #RandFlipd(keys =["image", "label"], prob = 0.2, spatial_axis=1)])
 # flipping along y-axis (horizontally), using small SD range for blurring kernel for the warp, 
-train_patches_dataset = PatchDataset(data = train_imgs_cache, patch_func=patching_func, samples_per_image=num_patches, transform= patch_transforms)
-validate_patches_dataset = PatchDataset(data = validate_imgs_cache, patch_func=patching_func, samples_per_image=num_patches) 
+train_patches_dataset = PatchDataset(data = train_files, patch_func=patching_func, samples_per_image=num_patches, transform= patch_transforms)
+validate_patches_dataset = PatchDataset(data = validate_files, patch_func=patching_func, samples_per_image=num_patches) 
 
-train_patches_dataset = CacheDataset(data=train_patches_dataset, cache_rate=1.0, num_workers=1) # dataset with cache mechanism that can load data and cache deterministic transforms’ result during training.
-validate_patches_dataset = CacheDataset(data=validate_patches_dataset,  cache_rate=1.0, num_workers=1)
+train_patches_dataset = CacheDataset(data=train_patches_dataset, cache_rate=1, num_workers=1) # dataset with cache mechanism that can load data and cache deterministic transforms’ result during training.
+validate_patches_dataset = CacheDataset(data=validate_patches_dataset,  cache_rate=1, num_workers=1)
 
 
 
 #setting num_workers >1 causes transforms error later on in training loop
 
 
-# In[ ]:
+# In[8]:
 
 
 CNN=UNet(
@@ -127,28 +130,28 @@ CNN.apply(monai.networks.normal_init)
 CNN_model = CNN.to(device)
 
 
-# In[8]:
+# In[9]:
 
 
 import time
-learning_rate = 2e-6 # changed from 2e-4
+learning_rate = 2e-5 # changed from 2e-4
 betas = (0.5, 0.999)
 cnn_opt = torch.optim.Adam(CNN_model.parameters(), lr = learning_rate, betas=betas)
 
-patience = 100# epochs it will take for training to terminate if no improvement
+patience = 45# epochs it will take for training to terminate if no improvement
 early_stopping = EarlyStopping(patience=patience, verbose=True, path = f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/checkpoint.pt')
 start = time.time() # initializing variable to calculate training time
 
 max_epochs = 4000 # max total iterations over entire training set
 #root_mean_squared = MeanSquaredError(squared = False).to(device) #rmse metric calculated at the end of each epoch for training and val
 mean_abs_error = torch.nn.L1Loss().to(device)
-SSIM_L = SSIM(gaussian_kernel=True, sigma=1.5, reduction='elementwise_mean').to(device)
+#SSIM_L = SSIM(gaussian_kernel=True, sigma=1.5, reduction='elementwise_mean').to(device)
 
 mae_val = [0] # list of validation loss calculated at the end of each epoch
 epoch_loss_values = [0] # list of training loss calculated at the end of each epoch
 
-train_loader = DataLoader(train_patches_dataset, batch_size=batch_size, shuffle=True, num_workers = 8)
-val_loader = DataLoader(validate_patches_dataset, batch_size=batch_size, shuffle=True, num_workers =8)
+train_loader = DataLoader(train_patches_dataset, batch_size=batch_size, shuffle=True, num_workers = 16)
+val_loader = DataLoader(validate_patches_dataset, batch_size=batch_size, shuffle=True, num_workers =16)
 
 for epoch in range(max_epochs):
     CNN_model.train() # setting model to training mode
@@ -157,16 +160,16 @@ for epoch in range(max_epochs):
             index=epoch+1, # displays what step we are of current epoch, our epoch number, training  loss
             count = max_epochs, 
             desc= f"epoch {epoch + 1}, training mae loss: {epoch_loss_values[-1]:.4f}, validation mae metric: {mae_val[-1]:.4f}",
-            newline = True ) # progress bar to display current stage in training
+            newline = True) # progress bar to display current stage in training
     for i,train_batch in enumerate(train_loader): # iterating through dataloader
-        
         gad_images = train_batch['image'].cuda()# gad images of batch
         nongad_images = train_batch['label'].cuda() # nongad images of batch
         cnn_opt.zero_grad()
         degad_images = CNN_model(gad_images) # feeding CNN with gad images
-        MAE_loss = mean_abs_error(degad_images, nongad_images)
-        SSIM_loss = 1- SSIM_L(degad_images, nongad_images) # want to maximize SSIM loss so subtract from 1
-        train_loss= 0.5*MAE_loss + 0.35*SSIM_loss
+        #MAE_loss = mean_abs_error(degad_images, nongad_images)
+        #SSIM_loss = 1- SSIM_L(degad_images, nongad_images) # want to maximize SSIM loss so subtract from 1
+        #train_loss= 0.5*MAE_loss + 0.35*SSIM_loss
+        train_loss = mean_abs_error(degad_images, nongad_images)
         train_loss.backward()
         cnn_opt.step()
         epoch_loss += train_loss.item() # adding loss for this batch to the total training loss for this epoch
@@ -174,14 +177,15 @@ for epoch in range(max_epochs):
     epoch_loss_values.append(avg_training_loss) # append total epoch loss divided by the number of training steps in epoch to loss list
     CNN_model.eval() #setting model to evaluation mode for validation
     with torch.no_grad(): #we do not update weights/biases in validation training, only used to assess current state of model
-        mae_total_epoch = 0 # mean squared error for the entire epoch
+        mae_total_epoch = 0 # mean absolute error for the entire epoch
         for i,val_batch in enumerate(val_loader): # iterating through dataloader
             gad_images =val_batch["image"].cuda()# batch with gad images
             nongad_images = val_batch["label"].cuda() # batch with nongad images
             degad_images = CNN_model(gad_images)
-            MAE_loss = mean_abs_error(degad_images, nongad_images)
-            SSIM_loss = 1- SSIM_L(degad_images, nongad_images)
-            val_loss= 0.5*MAE_loss + 0.35*SSIM_loss
+            #MAE_loss = mean_abs_error(degad_images, nongad_images)
+            #SSIM_loss = 1- SSIM_L(degad_images, nongad_images)
+            #val_loss= 0.5*MAE_loss + 0.35*SSIM_loss
+            val_loss = mean_abs_error(degad_images, nongad_images)
             mae_total_epoch += val_loss # adding val mse of this batch to total val epoch mse
         avg_val_mae = mae_total_epoch.item()/validation_steps
         mae_val.append(avg_val_mae) # dividing total mse in this epoch by the number of batches -> add to list of epoch mse
@@ -216,14 +220,14 @@ plt.legend()
 plt.savefig(f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/lossfunction.png')
 
 
-# In[ ]:
+# In[24]:
 
 
 CNN_model.load_state_dict(torch.load(f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/checkpoint.pt'))
 CNN_model.eval()
 
 
-# In[ ]:
+# In[25]:
 
 
 # running inference on only one test subject
@@ -239,7 +243,7 @@ infer_loader = DataLoader(infer_ds, batch_size=1, shuffle=True) #using pytorch's
 
 
 
-# In[ ]:
+# In[26]:
 
 
 degad_imgs = []
@@ -252,7 +256,7 @@ for infer_imgs in infer_loader:
     degad_imgs.append(output_degad_img)
 
 
-# In[ ]:
+# In[27]:
 
 
 for i in range(len(degad_imgs)): #looping thru number of output files
@@ -269,7 +273,7 @@ for i in range(len(degad_imgs)): #looping thru number of output files
     nibabel.save(degad_file,output_path) 
 
 
-# In[ ]:
+# In[28]:
 
 
 import random
@@ -291,7 +295,7 @@ for i in range (1,25,3):
 plt.savefig(f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/test/figure_whole_brain.png')
 
 
-# In[ ]:
+# In[21]:
 
 
 #generating random 32x32 slices
@@ -312,4 +316,10 @@ for i in range (1,25,3):
    
 
 plt.savefig(f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/test/figure_32_patches.png')  
+
+
+# In[ ]:
+
+
+
 
