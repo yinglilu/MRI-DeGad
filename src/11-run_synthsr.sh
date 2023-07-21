@@ -33,3 +33,5 @@ for sub in $sub_list; do
     mv ${synth_bids}/${sub}/ses-pre/anat/${sub}_ses-pre_acq-gad_run-1_desc-preproc_T1w_SynthSR.nii.gz ${synthsr_bids}/${sub}/ses-pre/anat/${sub}_ses-pre_acq-gad_run-1_desc-preproc_SynthSR_T1w.nii.gz # need to rename to make fmriprep know it is a t1w image
 done
 
+#now can run fmriprep on outputs
+#bidsBatch -j Long fmriprep_21.0.0 ~/projects/ctb-akhanf/cfmm-bids/Lau/degad/derivatives/synthsr/bids/ ~/projects/ctb-akhanf/cfmm-bids/Lau/degad/derivatives/fmriprep/synthsr/ participant --anat-only --skip_bids_validation --omp-nthreads 8 --nprocs 16
