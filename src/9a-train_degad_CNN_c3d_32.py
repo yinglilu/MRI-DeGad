@@ -65,7 +65,7 @@ from torchmetrics import StructuralSimilarityIndexMeasure as SSIM
 date="July14" #  put current date if training, test if just testing
 
 if not os.path.exists(f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}'):
-    os.makedirs(directory)
+    os.makedirs(f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}')
     
 if date != "test":
     shutil.copy('/home/fogunsan/scratch/degad/repo/MRI-DeGad/src/9a-train_degad_CNN_c3d_32.py', f'/home/fogunsan/scratch/degad/derivatives/UNET/{date}/')

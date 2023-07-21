@@ -68,7 +68,7 @@ if not os.path.exists(f'/home/fogunsan/scratch/degad/derivatives/GAN/{date}'):
     os.makedirs(f'/home/fogunsan/scratch/degad/derivatives/GAN/{date}')
     
 if date != "test":
-    shutil.copy('/home/fogunsan/scratch/degad/repo/MRI-DeGad/src/9a-train_degad_GAN_c3d_32.py', f'/home/fogunsan/scratch/degad/derivatives/GAN/{date}/')
+    shutil.copy('/home/fogunsan/scratch/degad/repo/MRI-DeGad/src/9b-train_degad_GAN_c3d_32.py', f'/home/fogunsan/scratch/degad/derivatives/GAN/{date}/')
 
 
 # In[13]:
@@ -423,11 +423,11 @@ for i in range (1,33,4):
 plt.savefig(f'/home/fogunsan/scratch/degad/derivatives/GAN/{date}/test/figure_whole_brain.png')
 
 
-# In[45]:
+# In[53]:
 
 
 #generating random 32x32 slices
-fig, axes = plt.subplots(8, 4,figsize=(10,20))
+fig, axes = plt.subplots(8, 4,figsize=(10,30))
 plt.suptitle('Patches: Gad, NonGad, Degad, subtraction map')
 
 for i in range (1,33,4):
@@ -445,8 +445,14 @@ for i in range (1,33,4):
     plt.subplot(8, 4, i+3)
     noise_vector = degad_imgs[0][0,0,:,:,:] - nongad_infer_imgs[0][0,0,:,:,:] 
     #pos values are where model overestimated intensities and neg values are where the model underestimated
-    plt.imshow(noise_vector[40:210,40:150, x].cpu().data.numpy(), "seismic",vmin=-1,vmax=1)
+    plt.imshow(noise_vector[x:x+32,y:y+32,50].cpu().data.numpy(), "seismic",vmin=-1,vmax=1)
     plt.colorbar()
 
 plt.savefig(f'/home/fogunsan/scratch/degad/derivatives/GAN/{date}/test/figure_32_patches.png')  
+
+
+# In[ ]:
+
+
+
 
