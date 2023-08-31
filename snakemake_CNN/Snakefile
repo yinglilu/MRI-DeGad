@@ -17,7 +17,7 @@ rule copy_patches:
     input:
         train="data/patches/training_samples_{p_size-1}.dat"
         val="data/patches/validation_samples_{p_size-1}.dat"
-        
+    localrule: True
     shell:
         "cp {input.train} {input.val} /local/tmp/ 
        
@@ -26,12 +26,18 @@ rule train:
     input:
         train="/localscratch/tmp/training_samples_31.dat"
         val="/localscratch/tmp/validation_samples_31.dat" # change from hardcode later
-    output:                                                                                         log="output/patch_batch_{size}_LR_{lr}_filter_{filter}_depth_{depth}_convs_{convs}/model_log.txt"
+    output:                                                                                         
+        log="output/patch_batch_{size}_LR_{lr}_filter_{filter}_depth_{depth}_convs_{convs}/model_log.txt"
     params:
         batch_size=lambda wildcards: wildcards.size,
         lr=lambda wildcards: wildcards.lr,
         ini_filter=lambda wildcards: wildcards.filter,
         depth=lambda wildcards: wildcards.depth,
         num_convs= lambda wildcards: wildcards.convs
+    threads: 8
+    resources:
+        runtime=60*24*3 #time in minutes (3 days)
+        mem_mb=32000
+        gpus=1
     shell:
         "python3 scripts/training_degad_CNN.py --input {input.train} {input.val} --batch_size {params.batch_size} --lr {params.lr} --ini_filter {params.ini_filter} --depth {params.depth} --num_conv {params.num_convs}  > {output.log}"
