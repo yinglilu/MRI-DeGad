@@ -1,0 +1,58 @@
+Unpacking venv 'venv_train_degad'
+Updating paths
+beginning training
+Building DAG of jobs...
+Using shell: /cvmfs/soft.computecanada.ca/gentoo/2020/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job stats:
+job             count
+------------  -------
+all                 1
+copy_patches        1
+train               4
+total               6
+
+Select jobs to execute...
+
+[Mon Sep 25 15:28:18 2023]
+rule copy_patches:
+    input: data/patches/training_samples_32.dat, data/patches/validation_samples_32.dat
+    output: /localscratch/fogunsan.11408584.0/training_samples_32.dat, /localscratch/fogunsan.11408584.0/validation_samples_32.dat
+    jobid: 2
+    reason: Missing output files: /localscratch/fogunsan.11408584.0/validation_samples_32.dat, /localscratch/fogunsan.11408584.0/training_samples_32.dat
+    wildcards: p_size=32
+    resources: tmpdir=/tmp
+
+[Mon Sep 25 15:30:01 2023]
+Finished job 2.
+1 of 6 steps (17%) done
+Select jobs to execute...
+
+[Mon Sep 25 15:30:01 2023]
+rule train:
+    input: /localscratch/fogunsan.11408584.0/training_samples_32.dat, /localscratch/fogunsan.11408584.0/validation_samples_32.dat
+    output: output/patch-32_batch-128_LR-0.001_filterG-32_filterD-32_depthG-3_convsG-2_convsD-2_stepsD-4/model_log.txt
+    jobid: 1
+    reason: Missing output files: output/patch-32_batch-128_LR-0.001_filterG-32_filterD-32_depthG-3_convsG-2_convsD-2_stepsD-4/model_log.txt; Input files updated by another job: /localscratch/fogunsan.11408584.0/validation_samples_32.dat, /localscratch/fogunsan.11408584.0/training_samples_32.dat
+    wildcards: p_size=32, b_size=128, lr=0.001, filterG=32, filterD=32, depthG=3, convsG=2, convsD=2, steps=4
+    resources: tmpdir=/tmp
+
+Traceback (most recent call last):
+  File "/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_GAN/scripts/training_degad_GAN.py", line 410, in <module>
+    train_model(input_files,patch_size, batch_size,lr,filter_num_G,filter_num_D,depth_G,num_conv_G, train_steps_D)
+TypeError: train_model() missing 1 required positional argument: 'train_steps_d'
+[Mon Sep 25 15:30:07 2023]
+Error in rule train:
+    jobid: 1
+    input: /localscratch/fogunsan.11408584.0/training_samples_32.dat, /localscratch/fogunsan.11408584.0/validation_samples_32.dat
+    output: output/patch-32_batch-128_LR-0.001_filterG-32_filterD-32_depthG-3_convsG-2_convsD-2_stepsD-4/model_log.txt
+    shell:
+        python3 scripts/training_degad_GAN.py --input /localscratch/fogunsan.11408584.0/training_samples_32.dat /localscratch/fogunsan.11408584.0/validation_samples_32.dat --patch_size 32 --batch_size 128 --lr 0.001 --ini_filter_G 32 --ini_filter_D 32 --depth_G 3 --num_conv_G 2 --num_conv_D 2 --train_steps_D 4  > output/patch-32_batch-128_LR-0.001_filterG-32_filterD-32_depthG-3_convsG-2_convsD-2_stepsD-4/model_log.txt
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Removing output files of failed job train since they might be corrupted:
+output/patch-32_batch-128_LR-0.001_filterG-32_filterD-32_depthG-3_convsG-2_convsD-2_stepsD-4/model_log.txt
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2023-09-25T152817.828678.snakemake.log

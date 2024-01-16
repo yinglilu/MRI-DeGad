@@ -1,0 +1,45 @@
+PATCH_SIZES = [32]
+BATCH_SIZES = [128,256]
+LEARNING_RATES = [0.001,0.0005] 
+INITIAL_FILTER_G = [32]
+INITIAL_FILTER_D= [32]
+DEPTHS_G = [3]
+NUM_CONVS_G = [2]
+NUM_CONVS_D = [2]
+TRAIN_STEPS_D=[4]
+TMP_DIR =  os.environ.get("SLURM_TMPDIR", "/tmp")
+rule all:
+    input:
+        expand("output/patch-{p_size}_batch-{b_size}_LR-{lr}_filterG-{filterG}_filterD-{filterD}_depthG-{depthG}_convsG-{convsG}_convsD-{convsD}_stepsD-{steps}/model_log.txt", p_size=PATCH_SIZES, b_size=BATCH_SIZES, lr=LEARNING_RATES, filterG=INITIAL_FILTER_G,filterD=INITIAL_FILTER_D,depthG=DEPTHS_G,convsG=NUM_CONVS_G, convsD=NUM_CONVS_D,steps= TRAIN_STEPS_D)
+               
+rule copy_patches:
+    output:
+        train=f"{TMP_DIR}/training_samples_{{p_size}}.dat", 
+        val=f"{TMP_DIR}/validation_samples_{{p_size}}.dat"
+    input:
+        train="data/patches/training_samples_{p_size}.dat",
+        val="data/patches/validation_samples_{p_size}.dat"
+    params:
+        tmp_DIR = f"{TMP_DIR}"
+    shell:
+        "cp {input.train} {input.val} {params.tmp_DIR}" 
+
+rule train:
+    input:
+        train=f"{TMP_DIR}/training_samples_{{p_size}}.dat", 
+        val=f"{TMP_DIR}/validation_samples_{{p_size}}.dat"
+    threads: 32
+    output:
+        out="output/patch-{p_size}_batch-{b_size}_LR-{lr}_filterG-{filterG}_filterD-{filterD}_depthG-{depthG}_convsG-{convsG}_convsD-{convsD}_stepsD-{steps}/model_log.txt"
+    params:
+        patch_size=lambda wildcards: wildcards.p_size,
+        batch_size=lambda wildcards: wildcards.b_size,
+        lr=lambda wildcards: wildcards.lr,
+        filterG=lambda wildcards: wildcards.filterG,
+        filterD=lambda wildcards: wildcards.filterD,
+        depthG=lambda wildcards: wildcards.depthG,
+        convsG= lambda wildcards: wildcards.convsG,
+        convsD= lambda wildcards: wildcards.convsD,
+        steps=lambda wildcards: wildcards.steps
+    shell:
+        "python3 scripts/training_degad_GAN.py --input {input.train} {input.val} --patch_size {params.patch_size} --batch_size {params.batch_size} --lr {params.lr} --ini_filter_G {params.filterG} --ini_filter_D {params.filterD} --depth_G {params.depthG} --num_conv_G {params.convsG} --num_conv_D {params.convsD} --train_steps_D {params.steps}  > {output.out}"
