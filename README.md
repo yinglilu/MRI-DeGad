@@ -3,12 +3,33 @@ Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weight
 
 
 ## Setup
-  Ensure you are logged onto graham. To clone the MRI-degad repo onto your system run:
+  1. Ensure you are logged onto graham. To clone the MRI-degad repo onto your scratch run:
   `git clone git@github.com:fogunsan/MRI-DeGad.git`
-  A venv can be created using kslurm with the following command:
+  2. A venv can be created using kslurm with the following command:
   `kpy create venv_degad`
-  Following venv creation, cd into the cloned directory and run:
+  3. Following venv creation, cd into the cloned directory and run:
   `pip install -r venv_requirements.txt`
+
+## Running preprocessing snakemake workflow (TBA)
+
+## Running  CNN/GAN snakemake model training workflow
+  16 mm and 32 mm pregenerated patches (outputs from preprocessing pipeline) are stored at `/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/derivatives/patches`.
+  Can run snakemake model training workflow to output model checkpoints and output images in `output/` directory of `snakemake_CNN` or `snakemake_GAN` directory.
+  Can vary arguments at top of Snakefile ensuring max combinations in a single job does not surpass 4 due to time limits.
+  Search space for CNN:
+      Patch size: [15,31]
+      Batch size: [32,64,128]
+      Learning rate: [0.01,0.001,0.005,0.0001]
+      Initial number of filters: [16,32,64]
+      Number of Convolutions: [2,3]
+      Loss: [MAE]
+  1. cd into cloned repo.
+  2. `cd snakemake_CNN` or `cd snakemake_GAN`, depending on what model you are training
+  3. `mkdir output` if it does not already exist
+  4. Adjust arguments at top of Snakefile. Can check `/project/6050199/akhanf/cfmm-bids/data/Lau/shared/training/snakemake_CNN/output` to ensure combination has not already been tested
+  5. In `scripts/run_training.sh` file, change repo variable to one located on your scratch.
+  6. `bash scripts/run_training.sh`
+
 
 ## Running inference on trained MRI-degad models on graham
   1. Sufficient computational resources must be requested. Sample command:
@@ -28,7 +49,7 @@ Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weight
   `python3 inference_degad_CNN.py --checkpoint /project/6050199/akhanf/cfmm-bids/data/Lau/shared/training/snakemake_CNN/output/<model>/checkpoint.pt --gad_direc <input_gad_dir> --output_dir <output_degad_dir> --degad_ds`
 
   **Note that directory of gad images must be in non-bids format and that the degad output directory is in bids format
-  ** using the optional --degad_ds flag indicates that bids files (CHANGES,  scans.json,  dataset_description.json, participants.json, README) from original seeg/dbs degad dataset will be output to make output directory fmriprep ready. If using an external dataset, need to manually input those files afterwards for fMRIPrep to run. **
+  ** using the optional --degad_ds flag indicates that bids files (CHANGES,  scans.json,  dataset_description.json, participants.json, README) from original seeg/dbs degad dataset (`/project/6050199/akhanf/cfmm-bids/data/Lau/degad/bids`) will be output to make output directory fmriprep ready. If using an external dataset, need to manually input those files afterwards for fMRIPrep to run. **
 
   sample command:
   `python3 inference_degad_CNN.py --checkpoint /project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output/patch-16_batch-128_LR-0.001_filter-32_depth-3_convs-2_loss-mae/checkpoint.pt --gad_direc ../../derivatives/test_set/ --output_dir ../../derivatives/test_set/test_inference/`
