@@ -16,8 +16,8 @@ rule copy_patches:
         train=f"{TMP_DIR}/training_samples_{{p_size}}.dat", 
         val=f"{TMP_DIR}/validation_samples_{{p_size}}.dat"
     input:
-        train="data/patches/training_samples_{p_size}.dat",
-        val="data/patches/validation_samples_{p_size}.dat"
+        train="/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/derivatives/patches/training_samples_{p_size}.dat",
+        val="/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/derivatives/patches/validation_samples_{p_size}.dat"
     params:
         tmp_DIR = f"{TMP_DIR}"
     shell:

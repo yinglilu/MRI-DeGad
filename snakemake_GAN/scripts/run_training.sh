@@ -5,9 +5,11 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
 #SBATCH --time=7-00:00
+echo "begin"
 source $(kpy _kpy_wrapper)
 kpy load venv_train_degad
 echo "beginning training"
-cd /home/fogunsan/projects/ctb-akhanf/cfmm-bids/Lau/degad/snakemake/snakemake_GAN/
+repo="/home/fogunsan/scratch/degad/repos/MRI-DeGad" # change to your repo directory
+cd ${repo}/snakemake_GAN/ 
 snakemake --cores 1
 

@@ -9,5 +9,6 @@ echo "begin"
 source $(kpy _kpy_wrapper)
 kpy load venv_train_degad
 echo "beginning training"
-cd /home/fogunsan/projects/ctb-akhanf/cfmm-bids/Lau/degad/snakemake/snakemake_CNN/
+repo="/home/fogunsan/scratch/degad/repos/MRI-DeGad" # change to your repo directory
+cd ${repo}/snakemake_CNN/ 
 snakemake --cores 1
