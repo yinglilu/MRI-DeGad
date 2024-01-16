@@ -1,5 +1,38 @@
 # MRI-DeGad
-Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weighted MRI to Non-Gadolinium T1w Scans using a CNN and a GAN
+Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weighted MRI to Non-Gadolinium T1w Scans
+
+
+## Setup
+  Ensure you are logged onto graham. To clone the MRI-degad repo onto your system run:
+  `git clone git@github.com:fogunsan/MRI-DeGad.git`
+  A venv can be created using kslurm with the following command:
+  `kpy create venv_degad`
+  Following venv creation, cd into the cloned directory and run:
+  `pip install -r venv_requirements.txt`
+
+## Running inference on trained MRI-degad models on graham
+  1. Sufficient computational resources must be requested. Sample command:
+  `regularInteractive -n 16 -m 64000 -t 1 -g`
+  
+  2. The venv can then be loaded:
+  `kpy load venv_train_degad`
+
+  Checkpoints from trained MRI-degad-CNN models are located at:
+  `/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output`
+
+  Script to run inference on a directory of gad images is located at:
+  `/project/6050199/akhanf/cfmm-bids/data/Lau/degad/shared/inference/inference_degad_CNN.py`
+    
+  3. To run inference script:
+  `cd /project/6050199/akhanf/cfmm-bids/data/Lau/degad/shared/inference`
+  `python3 inference_degad_CNN.py --checkpoint /project/6050199/akhanf/cfmm-bids/data/Lau/shared/training/snakemake_CNN/output/<model>/checkpoint.pt --gad_direc <input_gad_dir> --output_dir <output_degad_dir> --degad_ds`
+
+  **Note that directory of gad images must be in non-bids format and that the degad output directory is in bids format
+  ** using the optional --degad_ds flag indicates that bids files (CHANGES,  scans.json,  dataset_description.json, participants.json, README) from original seeg/dbs degad dataset will be output to make output directory fmriprep ready. If using an external dataset, need to manually input those files afterwards for fMRIPrep to run. **
+
+  sample command:
+  `python3 inference_degad_CNN.py --checkpoint /project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output/patch-16_batch-128_LR-0.001_filter-32_depth-3_convs-2_loss-mae/checkpoint.pt --gad_direc ../../derivatives/test_set/ --output_dir ../../derivatives/test_set/test_inference/`
+  
 
 
 ## Pipeline
