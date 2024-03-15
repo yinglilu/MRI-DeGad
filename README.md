@@ -2,9 +2,12 @@
 Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weighted MRI to Non-Gadolinium T1w Scans
 
 ## Directory of outputs
-The CNN model outputs are stored at /project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output
-Checkpoint is stored at /project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output/<model>/checkpoint.pt
-Output niftii from a test subject is stored at /project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output/<model>/test
+The CNN model outputs are stored at `/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output`
+
+Checkpoint is stored at `/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output/<model>/checkpoint.pt`
+
+Output niftii from a test subject is stored at `/project/6050199/akhanf/cfmm-bids/data/Lau/degad/snakemake/snakemake_CNN/output/<model>/test`
+
 ## Setup
   1. Ensure you are logged onto graham. To clone the MRI-degad repo onto your scratch run:
   `git clone git@github.com:fogunsan/MRI-DeGad.git` or `git clone https://github.com/fogunsan/MRI-DeGad.git`
