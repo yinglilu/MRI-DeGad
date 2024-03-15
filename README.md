@@ -4,7 +4,7 @@ Convolutional Neural Network for the Conversion of Gadolinium-Enhanced T1-weight
 
 ## Setup
   1. Ensure you are logged onto graham. To clone the MRI-degad repo onto your scratch run:
-  `git clone git@github.com:fogunsan/MRI-DeGad.git`
+  `git clone git@github.com:fogunsan/MRI-DeGad.git` or `git clone https://github.com/fogunsan/MRI-DeGad.git`
   2. A venv can be created using kslurm with the following command:
   `kpy create venv_degad`
   3. Following venv creation, cd into the cloned directory and run:
